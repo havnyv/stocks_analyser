@@ -1,0 +1,121 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div id="home-section-1">
+  <div class="container-fluid">
+    <!-- Hero -->
+    <div class="px-4 pt-5  my-5 text-center ">
+      <h1 class="display-4 mb-2 fw-bold">Stock Market Analyser</h1>
+      <div class="container">
+        <!-- <hr> -->
+      </div>
+      <div class="col-lg-6 pt-2 mx-auto">
+        <p class="lead mb-3 h3 " style="font-weight: 600;color: #0078ff;"> SMA can be used to analyze the historical
+          performance of stocks within the Nifty 500 index
+        </p>
+
+      </div>
+      <!-- search function -->
+      <form class="d-flex mb-3 pt-2" style="max-width: 50vw;margin: auto;position: relative;">
+        <input class="form-control me-2" id="highlight-box" type="search"
+          placeholder="Type a Company Name or Symbol to Search" style="box-shadow: 0 5px 30px rgb(0 120 255 / 20%);"
+          onkeyup="myFunction()">
+
+
+        <div class="output active">
+          <ul class="dynamic-list" id="highlight-ul">
+          </ul>
+        </div>
+        <style>
+          .output.active {
+            position: absolute;
+            max-width: 49.4vw;
+            width: 100%;
+            top: 68%;
+            background-color: white;
+            text-align: left;
+            font-size: x-large;
+            border-radius: 0 0 10% 10%;
+          }
+
+          .dynamic-list li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            padding-left: 5px;
+          }
+
+          .dynamic-list li {
+            width: 100%;
+            height: 100%;
+            border-bottom: 1px solid grey;
+
+          }
+
+          .dynamic-list li:hover {
+            width: 100%;
+            height: 100%;
+            background: rgb(233, 233, 233);
+
+          }
+        </style>
+      </form>
+
+      <div class="bd-example"> Try :
+        <span class="btn btn-outline-primary badge" id="home-badge"><a href="/stock/TCS">TCS</a></span>
+        <span class="btn btn-outline-primary badge" id="home-badge"><a href="/stock/RELIANCE">Reliance</a></span>
+        <span class="btn btn-outline-primary badge" id="home-badge"><a href="/stock/SBICARD">SBI</a></span>
+      </div>
+
+
+
+      <script>
+
+        function myFunction() {
+          // Declare variables
+          var input, filter, ul, li, a, i, txtValue;
+          input = document.getElementById('highlight-box');
+          filter = input.value.toUpperCase();
+          ul = document.getElementById("highlight-ul");
+          li = ul.getElementsByTagName('li');
+
+          // Loop through all list items, and hide those who don't match the search query
+          for (i = 0; i < li.length; i++) {
+            a = li[i].getElementsByTagName("a")[0];
+            txtValue = a.textContent || a.innerText;
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+              li[i].style.display = "";
+            } else {
+              li[i].style.display = "none";
+            }
+          }
+
+          input = document.getElementById('highlight-box');
+
+          ul = document.getElementById("highlight-ul");
+          if (input.value.length <= 1) {
+
+            ul.style.display = "none"
+          }
+          else {
+            ul.style.display = "block"
+          }
+        }
+
+        async function fetchListOfStocks() {
+          response = await fetch("/callback/fetchListOfStocks");
+          let fetched500 = await response.json();
+          ul = document.getElementById("highlight-ul");
+          str = ``
+          for (let i = 0; i < fetched500.symbol.length; i++) {
+            str += `<li> <a href="/stock/${fetched500.symbol[i]}">${fetched500.companyName[i]} </a></li>`
+
+          }
+          ul.innerHTML = str
+          ul = document.getElementById("highlight-ul");
+          ul.style.display = "none"
+        }
+        fetchListOfStocks()
+      </script>
+
+      {% endblock content %}

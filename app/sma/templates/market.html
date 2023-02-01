@@ -1,0 +1,107 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="mt-3">Nifty 500</h1>
+<div class="container">
+
+    It represents the top 500 companies based on full market capitalisation from the eligible universe.
+    <ul>
+        <li>
+            The NIFTY 500 Index represents about 96.1% of the free float market capitalization of the stocks listed on
+            NSE as on March 29, 2019.
+        </li>
+        <li>
+            The total traded value for the last six months ending March 2019, of all Index constituents is approximately
+            96.5% of the traded value of all stocks on NSE.
+        </li>
+        <li>
+            The NIFTY 500 companies are disaggregated into industry indices viz. NIFTY Industry Indices.
+        </li>
+    </ul>
+
+    <br>
+    <br>
+
+    <div id="chart" class="chart" style="height: 300px;border: 1px solid; 
+        box-shadow: 5px 5px 5px #888888;">
+    </div>
+
+    <br><br>
+    <hr><br>
+</div>
+
+<h1 class="text-center mb-3">Nifty 500 Companies List</h1>
+<ul class="nav justify-content-center" id="sortBar" style="background-color:rgb(237, 237, 237);padding:18px">
+
+</ul>
+
+<div class="my-3 p-3 bg-white rounded box-shadow">
+    <h6 class="border-bottom border-gray pb-2 mb-0" id="stocks500">Suggestions</h6>
+
+
+
+</div>
+
+
+<script src="../static/plotly/plotly.min.js"></script>
+<script>
+    function sortBar() {
+        sortBar = document.getElementById('sortBar')
+        text = ``
+        const alphabet = ['3', 'A', 'D', 'B', 'M', 'C', 'L', 'E', 'F', 'N', 'G', 'H', 'P', 'I', 'J', 'K', 'O', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y', 'Z']
+        alphabet.forEach(e => {
+            text += ` <li class="nav-item" onclick="fetchListOfStocks('${e}')">
+      <a class="nav-link" active style="border-radius:20%;background:rgb(155 174 209);margin:2px;">${e}</a>
+    </li> `
+        });
+        sortBar.innerHTML = text
+        fetchListOfStocks('A')
+    }
+    sortBar();
+
+    async function callback() {
+        let Stock = 'nifty500'
+        let response = await fetch("/callback/getStock?data=" + Stock);
+
+        if (response.ok) {
+            let chartJson = await response.json();
+            if (response.ok) {
+                Plotly.newPlot('chart', chartJson, {});
+            } else {
+                alert("HTTP-Error: " + response.status + "on getInfo");
+            }
+        } else {
+            alert("HTTP-Error: " + response.status + "on getStock");
+        }
+    }
+    callback()
+
+    async function fetchListOfStocks(alpha) {
+        response = await fetch("/callback/fetchListOfStocks");
+        let fetched500 = await response.json();
+        row = document.querySelector('#stocks500')
+        str = ``
+        for (let i = 0; i < fetched500.symbol.length; i++) {
+            if (fetched500.symbol[i][0] == alpha) {
+
+                str += `
+    <div class="media text-muted pt-3">
+      <img src="../static/images/logo_imgs/${fetched500.symbol[i]}.png" style="width: 50px; height: 50px;">
+      <div class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+        <div class="d-flex justify-content-between align-items-center w-100">
+          <strong class="text-gray-dark">${fetched500.companyName[i]}</strong>
+          <a href="/stock/${fetched500.symbol[i]}">More info</a>
+        </div>
+        <span class="d-block">Symbol : ${fetched500.symbol[i]}</span>
+      </div>
+    </div>
+            
+            `
+            }
+        }
+
+        row.innerHTML = str
+    }
+
+</script>
+{% endblock content %}

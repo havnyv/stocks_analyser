@@ -1,0 +1,20 @@
+I have developed a stock market analysis website , I have used python flask in the backend ,
+I have collected the data of stocks that come under nifty 500 in a csv format and placed them in static folder
+
+
+I have also used plotly for plotting the data , The website has Register / login page, one can access home page and learn page without logging in, there is a learn page in which you can learn basic concepts about stock market , basic fundamental analysis and technical analysis
+
+
+In home page there is a huge search bar in which you can search a stock that come under nifty 500 , upon clicking that link you will be redirected to "/stock" page where the plot of the stock will be displayed (nearly 12 years of data) , along with the interactive plot there will be basic information about the company like the number of employees in the company, sector ,	grossProfits, totalCash, totalDebt, totalRevenue, totalCashPerShare, revenuePerShare	, bookValue, priceToBook, marketCap, averageVolume can be seen
+
+
+from stock page you can also download the data in the form of csv, then there is a market page in which you can read about nifty 500 and there is a plot of closing price of nifty500, at last you can sort and navigate to see your stock by sorting , I have used bootstrap and some custom css and js
+
+
+
+generate an abstract for the above mentioned website in about 250 words , include details about the problem it is solving and how can it help an investor to make investment decisions
+
+
+
+
+

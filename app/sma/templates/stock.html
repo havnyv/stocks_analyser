@@ -1,0 +1,180 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container">
+    <br><br>
+    <div class="row">
+        <div class="col"><b>Select stock</b></div>
+        <div class="col">
+            <select id="stock" class="form-select select-500" aria-label="Select" )>
+                <option value="SBIN">SBIN</option>
+                <option value="ACC">ACC</option>
+
+
+                {% with messages = get_flashed_messages() %}
+                {% if messages %}
+                <ul class=flashes>
+                    {% for message in messages %}
+                    <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+                {% endwith %}
+            </select>
+        </div>
+
+        <div class="col">
+            <button type="button" class="btn btn-primary" onclick="callback()">Fetch stock</button>
+        </div>
+        <div class="w-100" style="padding:10px;text-align:right;font-size: small;"><i>Note:logo images of some companies
+                are not available</i></div>
+
+        <div class="col-3">
+            <p><b>Stock info</b></p>
+            <p>Symbol: <span id="symbol">N/A</span></p>
+            <p>Sector: <span id="sector">N/A</span></p>
+            <p>Year High: <span id="yearHigh">N/A</span></p>
+            <p>Year Low: <span id="yearLow">N/A</span></p>
+            <p>Full Time Employees: <span id="fullTimeEmployees">N/A</span></p>
+            <p>City: <span id="city">N/A</span></p>
+            <p>Phone: <span id="phone">N/A</span></p>
+            <p>Website: <span id="website">N/A</span></p>
+
+
+        </div>
+        <div class="col-9">
+            <div class="head-logo">
+                <div id="logo"></div>
+                <h2 id="companyName"></h2>
+            </div>
+            <div id="chart" class="chart" style="height: 300px;border: 1px solid; 
+                box-shadow: 5px 5px 5px #888888;">
+            </div>
+        </div>
+        <div class="col-12" style="font-size:smaller;padding:10px;text-align: right;">
+            <i>The data is, to the best of our knowledge, correct but cannot be guarenteed to be so</i>
+            <br />
+        </div>
+    </div>
+
+    <section class="stockTwo pt-3">
+        <article class="blog-post aboutCompany">
+        </article>
+
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Other information</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody class="stockTable">
+                <tr>
+                    <th scope="row">1</th>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+</div>
+
+<button type="button" class="btn btn-primary">
+    <a style="color:white;" id="download" href="">Download as CSV file</a>
+</button>
+
+
+<script src="../static/plotly/plotly.min.js"></script>
+
+<script>
+    async function updateDownload() {
+        csv = document.getElementById('stock').value;
+        downloadlink = document.getElementById("download").href = `/download/${csv}.csv`
+    }
+    async function callback(Stockin) {
+        let Stock;
+        if (!Stockin) {
+            Stock = document.getElementById('stock').value;
+        } else {
+            Stock = Stockin;
+        }
+        let response = await fetch("/callback/getStock?data=" + Stock);
+
+        if (response.ok) {
+            let chartJson = await response.json();
+            if (response.ok) {
+                response = await fetch("/callback/getInfo?data=" + Stock);
+                let infoJson = await response.json();
+                info(infoJson);
+                Plotly.newPlot('chart', chartJson, {});
+            } else {
+                alert("HTTP-Error: " + response.status + "on getInfo");
+            }
+        } else {
+            alert("HTTP-Error: " + response.status + "on getStock");
+        }
+        updateDownload()
+    }
+    function info(json) {
+        let name = document.getElementById('companyName');
+        name.innerHTML = json.shortName;
+        name = document.getElementById('symbol');
+        name.innerHTML = json.symbol;
+        name = document.getElementById('sector');
+        name.innerHTML = json.sector;
+        name = document.getElementById('yearHigh');
+        name.innerHTML = json.a52high.toFixed(2);
+        name = document.getElementById('yearLow');
+        name.innerHTML = json.a52low.toFixed(2);
+        logo = document.getElementById("logo");
+        logo.innerHTML = `<img src="${json.logo}" alt="LOGO" >`
+        name = document.querySelector('.aboutCompany')
+        name.innerHTML = `
+        <h2 class="blog-post-title container">About Company</h2>
+        <p class="container">${json.about}</p>
+`
+        name = document.getElementById("fullTimeEmployees")
+        name.innerHTML = json.fullTimeEmployees
+        name = document.getElementById("city")
+        name.innerHTML = json.city
+        name = document.getElementById("phone")
+        name.innerHTML = json.phone
+        name = document.getElementById("website")
+        name.innerHTML = `<a href="${json.website}">${json.website}</a>`
+
+        let arr = ['grossProfits', 'totalCash', 'totalDebt', 'totalRevenue', 'totalCashPerShare', 'revenuePerShare', 'bookValue', 'priceToBook', 'marketCap', 'averageVolume']
+        stockTable = document.querySelector('.stockTable')
+        trs = ``
+        arr.forEach((element, num) => {
+            trs += `<tr>
+              <th scope="row">${num + 1}</th>
+              <td>${element}</td>
+              <td>${json[element]}</td>
+            </tr>`
+        });
+        stockTable.innerHTML = trs
+    }
+
+    async function fetchListOfStocks() {
+        response = await fetch("/callback/fetchListOfStocks");
+        let fetched500 = await response.json();
+        select500 = document.querySelector('.select-500')
+        str = ``
+        for (let i = 0; i < fetched500.symbol.length; i++) {
+
+
+            str += `<option value="${fetched500.symbol[i]}">${fetched500.companyName[i]}</option>`
+        }
+        select500.innerHTML = str
+    }
+    fetchListOfStocks()
+</script>
+{% if stockname %}
+<script>
+    stockname = `{{ stockname }}`
+    callback(stockname)
+</script>
+{% endif %}
+
+{% endblock %}
